@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"net/http"
 
 	"github.com/bhatsubhas/banking/service"
@@ -32,10 +31,16 @@ func (ch *CustomerHandler) getCustomer(rw http.ResponseWriter, r *http.Request) 
 	id := vars["customer_id"]
 	customer, err := ch.service.GetCustomer(id)
 	if err != nil {
-		rw.WriteHeader(err.Code)
-		fmt.Fprint(rw, err.Message)
+		writeReponse(rw, err.Code, err.AsMessage())
 	} else {
-		rw.Header().Add("Content-Type", "application/json")
-		json.NewEncoder(rw).Encode(customer)
+		writeReponse(rw, http.StatusOK, customer)
+	}
+}
+
+func writeReponse(rw http.ResponseWriter, code int, data interface{}) {
+	rw.Header().Add("Content-Type", "application/json")
+	rw.WriteHeader(code)
+	if err := json.NewEncoder(rw).Encode(data); err != nil {
+		panic(err)
 	}
 }
